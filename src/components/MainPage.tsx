@@ -6,15 +6,36 @@ import SearchInput from "./SearchInput";
 import ImageCard from "./ImageCard";
 import InfiniteScroll from "./InfiniteScroll";
 
-const api_url = "https://api.unsplash.com/search/photos";
-// api key in .env file
+// const api_url2 = "https://api.unsplash.com/search/photos";
+// api key in .env file (didnt hide it on purpose)
+
+const api_url = "https://api.unsplash.com/photos";
+
+interface ImageData {
+  id: string;
+  urls: {
+    small: string;
+  };
+  likes: number;
+}
+
+interface StatisticsData {
+  id: string;
+  downloads: {
+    total: number;
+  };
+  views: {
+    total: number;
+  };
+}
 
 const MainPage = () => {
   const [images, setImages] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [selectedImg, setSelectedImg] = useState<any>(null);
+  const [selectedImg, setSelectedImg] = useState<ImageData | null>(null);
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [statistics, setStatistics] = useState<StatisticsData[]>([]);
   const [page, setPage] = useState(1);
 
   //   Modal functionality
@@ -51,10 +72,31 @@ const MainPage = () => {
         }`
       )
       .then((res) => {
-        const responseData = res.data.results;
+        const responseData: ImageData[] = res.data;
         setImages((prev) => [...prev, ...responseData]);
         setLoading(false);
+
+        //
+
+        Promise.all(
+          responseData.map((image) =>
+            axios
+              .get(
+                `${api_url}/${image.id}/statistics?client_id=${
+                  import.meta.env.VITE_API_KEY
+                }`
+              )
+              .then((response) => response.data)
+          )
+        )
+          .then((statisticsData) => {
+            setStatistics((prev) => [...prev, ...statisticsData]);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
       })
+
       .catch((error) => {
         console.log(error);
         setLoading(false);
@@ -79,9 +121,15 @@ const MainPage = () => {
       {selectedImg && (
         <Modal
           imageUrl={selectedImg.urls.small}
-          views={selectedImg.width}
-          likes={selectedImg.height}
-          downloads={selectedImg.likes}
+          likes={selectedImg.likes}
+          views={
+            statistics.find((stat) => stat.id === selectedImg.id)?.views
+              ?.total || 0
+          }
+          downloads={
+            statistics.find((stat) => stat.id === selectedImg.id)?.downloads
+              ?.total || 0
+          }
           visible={showModal}
           onClose={handleCloseModal}
         />

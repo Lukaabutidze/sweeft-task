@@ -17,6 +17,12 @@ const Modal: React.FC<ModalProps> = ({
 }) => {
   if (!visible || imageUrl === null) return null;
 
+  // Function to format large numbers (download, views)
+  const formatNumber = (number: number | null) => {
+    if (number === null) return "";
+    return number.toLocaleString();
+  };
+
   return (
     <div className="fixed inset-0 z-10 overflow-y-auto" onClick={onClose}>
       <div className="flex items-center justify-center min-h-screen">
@@ -26,8 +32,12 @@ const Modal: React.FC<ModalProps> = ({
           )}
 
           <div className="p-4 m-10">
-            <h1 className="text-lg font-bold mt-5">Downloads: {downloads}</h1>
-            <h1 className="text-lg font-bold mt-5">Views: {views}</h1>
+            <h1 className="text-lg font-bold mt-5">
+              Downloads: {formatNumber(downloads)}
+            </h1>
+            <h1 className="text-lg font-bold mt-5">
+              Views: {formatNumber(views)}
+            </h1>
             <h1 className="text-lg font-bold mt-5">Likes: {likes}</h1>
           </div>
           <button
