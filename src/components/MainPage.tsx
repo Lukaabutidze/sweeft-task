@@ -7,7 +7,7 @@ import ImageCard from "./ImageCard";
 import InfiniteScroll from "./InfiniteScroll";
 
 // const api_url2 = "https://api.unsplash.com/search/photos";
-// api key in .env file (didnt hide it on purpose)
+// api key in .env file (didnt include it in gitignore on purpose)
 
 const api_url = "https://api.unsplash.com/photos";
 
@@ -19,23 +19,12 @@ interface ImageData {
   likes: number;
 }
 
-interface StatisticsData {
-  id: string;
-  downloads: {
-    total: number;
-  };
-  views: {
-    total: number;
-  };
-}
-
 const MainPage = () => {
   const [images, setImages] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedImg, setSelectedImg] = useState<ImageData | null>(null);
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [statistics, setStatistics] = useState<StatisticsData[]>([]);
   const [page, setPage] = useState(1);
 
   //   Modal functionality
@@ -61,46 +50,26 @@ const MainPage = () => {
   );
 
   // Data Fetch
+
   useEffect(() => {
     setLoading(true);
     axios
       .get(
-        `${api_url}?query=${
-          search.valueOf
-        }&per_page=20&page=${page}&order_by=popular&client_id=${
+        `${api_url}?query=${search}&per_page=20&page=${page}&order_by=popular&client_id=${
           import.meta.env.VITE_API_KEY
         }`
       )
       .then((res) => {
         const responseData: ImageData[] = res.data;
+
         if (page === 1) {
           setImages(responseData);
         } else {
           setImages((prev) => [...prev, ...responseData]);
         }
         setLoading(false);
-
         //
-
-        Promise.all(
-          responseData.map((image) =>
-            axios
-              .get(
-                `${api_url}/${image.id}/statistics?client_id=${
-                  import.meta.env.VITE_API_KEY
-                }`
-              )
-              .then((response) => response.data)
-          )
-        )
-          .then((statisticsData) => {
-            setStatistics((prev) => [...prev, ...statisticsData]);
-          })
-          .catch((error) => {
-            console.log(error);
-          });
       })
-
       .catch((error) => {
         console.log(error);
         setLoading(false);
@@ -125,16 +94,9 @@ const MainPage = () => {
         <Modal
           imageUrl={selectedImg.urls.small}
           likes={selectedImg.likes}
-          views={
-            statistics.find((stat) => stat.id === selectedImg.id)?.views
-              ?.total || 0
-          }
-          downloads={
-            statistics.find((stat) => stat.id === selectedImg.id)?.downloads
-              ?.total || 0
-          }
           visible={showModal}
           onClose={handleCloseModal}
+          imageId={selectedImg.id}
         />
       )}
       {/* Infinite Scroll */}

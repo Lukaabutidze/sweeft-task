@@ -1,20 +1,56 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+import Loader from "./Loader";
+
+const api_url = "https://api.unsplash.com/photos";
+
 interface ModalProps {
   imageUrl: string | null;
-  downloads: number | null;
-  views: number | null;
   likes: number | null;
   onClose: () => void;
   visible: boolean;
+  imageId: string;
+}
+
+interface StatisticsData {
+  id: string;
+  downloads: {
+    total: number;
+  };
+  views: {
+    total: number;
+  };
 }
 
 const Modal: React.FC<ModalProps> = ({
   imageUrl,
-  downloads,
-  views,
   likes,
   onClose,
   visible,
+  imageId,
 }) => {
+  const [statistics, setStatistics] = useState<StatisticsData>();
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    setLoading(true);
+    axios
+      .get(
+        `${api_url}/${imageId}/statistics?client_id=${
+          import.meta.env.VITE_API_KEY
+        }`
+      )
+      .then((response) => response.data)
+      .then((statisticsData) => {
+        setStatistics(statisticsData);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.log(error);
+        setLoading(false);
+      });
+  }, [imageId]);
+
   if (!visible || imageUrl === null) return null;
 
   // Function to format large numbers (download, views)
@@ -30,13 +66,13 @@ const Modal: React.FC<ModalProps> = ({
           {imageUrl && (
             <img src={imageUrl} alt="Modal Image" className="w-full" />
           )}
-
+          {loading && <Loader />}
           <div className="p-4 m-10">
             <h1 className="text-lg font-bold mt-5">
-              Downloads: {formatNumber(downloads)}
+              Downloads: {formatNumber(statistics?.downloads.total || 0)}
             </h1>
             <h1 className="text-lg font-bold mt-5">
-              Views: {formatNumber(views)}
+              Views: {formatNumber(statistics?.views.total || 0)}
             </h1>
             <h1 className="text-lg font-bold mt-5">Likes: {likes}</h1>
           </div>
