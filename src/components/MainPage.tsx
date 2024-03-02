@@ -67,13 +67,17 @@ const MainPage = () => {
       .get(
         `${api_url}?query=${
           search.valueOf
-        }&per_page=10&page=${page}&order_by=popular&client_id=${
+        }&per_page=20&page=${page}&order_by=popular&client_id=${
           import.meta.env.VITE_API_KEY
         }`
       )
       .then((res) => {
         const responseData: ImageData[] = res.data;
-        setImages((prev) => [...prev, ...responseData]);
+        if (page === 1) {
+          setImages(responseData);
+        } else {
+          setImages((prev) => [...prev, ...responseData]);
+        }
         setLoading(false);
 
         //
@@ -116,7 +120,6 @@ const MainPage = () => {
           </div>
         ))}
       </div>
-      {loading && <Loader />}
       {/* Modal */}
       {selectedImg && (
         <Modal
@@ -136,6 +139,7 @@ const MainPage = () => {
       )}
       {/* Infinite Scroll */}
       <InfiniteScroll onLoadMore={() => setPage((prev) => prev + 1)} />;
+      {loading && <Loader />}
     </>
   );
 };

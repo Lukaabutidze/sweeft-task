@@ -7,7 +7,7 @@ const ImageCard: React.FC<ImageCardProps> = ({ img, onClick }) => {
   return (
     <div className="flex justify-evenly m-10 rounded-lg">
       <img
-        src={img.urls.small}
+        src={img.urls.regular}
         alt={img.alt_description}
         onClick={() => onClick(img)}
         className="cursor-pointer shadow-xl rounded-lg transition-all-ease duration-500 hover:scale-110 max-h-80 w-auto"
