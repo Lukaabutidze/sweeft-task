@@ -40,9 +40,15 @@ const MainPage = () => {
     setShowModal(true);
   };
 
-  // Search Word
+  // Search Word Functionaality
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value);
+    const searchTerm = event.target.value;
+    setSearch(searchTerm);
+    sessionStorage.setItem("searchTerm", searchTerm);
+
+    setTimeout(() => {
+      sessionStorage.removeItem("searchTerm");
+    }, 300000); // 5 minutes
   };
 
   // Data Fetch of Popular images
@@ -64,6 +70,7 @@ const MainPage = () => {
           setImages((prev) => [...prev, ...responseData]);
         }
         setLoading(false);
+
         //
       })
       .catch((error) => {
@@ -74,11 +81,6 @@ const MainPage = () => {
 
   // Data Fetch of Search Input word
   useEffect(() => {
-    if (search.trim() === "") {
-      setSearchResults([]);
-      return;
-    }
-
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -89,6 +91,10 @@ const MainPage = () => {
         );
         const searchData: ImageData[] = response.data.results;
         setSearchResults(searchData);
+        sessionStorage.setItem(
+          "searchHistory",
+          JSON.stringify(searchData.map((item: ImageData) => item.id))
+        );
         setLoading(false);
       } catch (error) {
         console.error("Error fetching search results:", error);
@@ -96,24 +102,22 @@ const MainPage = () => {
       }
     };
 
-    // debounce time will be 7seconds
-    const debouncedFetchData = debounce(fetchData, 700);
+    // debounce time will be 1.5 seconds
+    const debouncedFetchData = debounce(fetchData, 1500);
 
-    debouncedFetchData(); // Initial fetch
+    debouncedFetchData();
 
     return () => {
-      // Cleanup
       debouncedFetchData.cancel();
     };
   }, [search]);
 
   return (
     <>
-      {/* Search Input Field */}
       <div className="flex justify-center mt-7">
         <SearchInput value={search} onChange={handleSearch} />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-2 mt-5">
         {(searchResults.length > 0 ? searchResults : images)?.map(
           (img, index) => (
             <div key={index} className="flex justify-evenly m-10 rounded-lg">

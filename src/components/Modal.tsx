@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Loader from "./Loader";
 
 const api_url = "https://api.unsplash.com/photos";
 
@@ -31,6 +30,7 @@ const Modal: React.FC<ModalProps> = ({
 }) => {
   const [statistics, setStatistics] = useState<StatisticsData>();
 
+  // Fetch statistics (views,downloads)
   useEffect(() => {
     axios
       .get(
@@ -41,6 +41,7 @@ const Modal: React.FC<ModalProps> = ({
       .then((response) => response.data)
       .then((statisticsData) => {
         setStatistics(statisticsData);
+        console.log(statisticsData);
       })
       .catch((error) => {
         console.log(error);
@@ -58,7 +59,7 @@ const Modal: React.FC<ModalProps> = ({
   return (
     <div className="fixed inset-0 z-10 overflow-y-auto" onClick={onClose}>
       <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-white rounded-lg overflow-hidden shadow-xl relative opacity-95">
+        <div className="bg-white rounded-lg overflow-hidden shadow-xl relative ">
           {imageUrl && (
             <img src={imageUrl} alt="Modal Image" className="w-full" />
           )}
