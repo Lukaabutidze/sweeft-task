@@ -30,10 +30,8 @@ const Modal: React.FC<ModalProps> = ({
   imageId,
 }) => {
   const [statistics, setStatistics] = useState<StatisticsData>();
-  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    setLoading(true);
     axios
       .get(
         `${api_url}/${imageId}/statistics?client_id=${
@@ -43,11 +41,9 @@ const Modal: React.FC<ModalProps> = ({
       .then((response) => response.data)
       .then((statisticsData) => {
         setStatistics(statisticsData);
-        setLoading(false);
       })
       .catch((error) => {
         console.log(error);
-        setLoading(false);
       });
   }, [imageId]);
 
@@ -66,7 +62,7 @@ const Modal: React.FC<ModalProps> = ({
           {imageUrl && (
             <img src={imageUrl} alt="Modal Image" className="w-full" />
           )}
-          {loading && <Loader />}
+
           <div className="p-4 m-10">
             <h1 className="text-lg font-bold mt-5">
               Downloads: {formatNumber(statistics?.downloads.total || 0)}

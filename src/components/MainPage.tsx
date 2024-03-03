@@ -5,8 +5,10 @@ import Loader from "./Loader";
 import SearchInput from "./SearchInput";
 import ImageCard from "./ImageCard";
 import InfiniteScroll from "./InfiniteScroll";
+import debounce from "./debounce/debounce";
 
-// const api_url2 = "https://api.unsplash.com/search/photos";
+const api_url2 = "https://api.unsplash.com/search/photos";
+
 // api key in .env file (didnt include it in gitignore on purpose)
 
 const api_url = "https://api.unsplash.com/photos";
@@ -26,30 +28,24 @@ const MainPage = () => {
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState(1);
+  const [searchResults, setSearchResults] = useState<ImageData[]>([]);
 
   //   Modal functionality
   const handleCloseModal = () => {
     setShowModal(false);
   };
   //
-  const handleImageclick = (img: any) => {
+  const handleImageClick = (img: any) => {
     setSelectedImg(img);
     setShowModal(true);
   };
 
-  /* Search functionality */
-
+  // Search Word
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
   };
 
-  const filteredImgs = images.filter(
-    (img) =>
-      img.alt_description &&
-      img.alt_description.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // Data Fetch
+  // Data Fetch of Popular images
 
   useEffect(() => {
     setLoading(true);
@@ -76,6 +72,41 @@ const MainPage = () => {
       });
   }, [page]);
 
+  // Data Fetch of Search Input word
+  useEffect(() => {
+    if (search.trim() === "") {
+      setSearchResults([]);
+      return;
+    }
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          `${api_url2}?query=${search}&per_page=20&client_id=${
+            import.meta.env.VITE_API_KEY
+          }`
+        );
+        const searchData: ImageData[] = response.data.results;
+        setSearchResults(searchData);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching search results:", error);
+        setLoading(false);
+      }
+    };
+
+    // debounce time will be 7seconds
+    const debouncedFetchData = debounce(fetchData, 700);
+
+    debouncedFetchData(); // Initial fetch
+
+    return () => {
+      // Cleanup
+      debouncedFetchData.cancel();
+    };
+  }, [search]);
+
   return (
     <>
       {/* Search Input Field */}
@@ -83,11 +114,13 @@ const MainPage = () => {
         <SearchInput value={search} onChange={handleSearch} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
-        {filteredImgs?.map((img, index) => (
-          <div key={index} className="flex justify-evenly m-10 rounded-lg">
-            <ImageCard key={index} img={img} onClick={handleImageclick} />
-          </div>
-        ))}
+        {(searchResults.length > 0 ? searchResults : images)?.map(
+          (img, index) => (
+            <div key={index} className="flex justify-evenly m-10 rounded-lg">
+              <ImageCard img={img} onClick={handleImageClick} />
+            </div>
+          )
+        )}
       </div>
       {/* Modal */}
       {selectedImg && (
